@@ -177,22 +177,65 @@
   <h2>📞 Liên hệ tư vấn</h2>
 
   <!-- Formspree: thay YOUR_FORM_ID -->
-  <form class="contact-form" 
-        action="https://formspree.io/f/xlggrzzg" 
-        method="POST">
-        
-    <input type="text" name="name" placeholder="Họ và tên" required />
-    <input type="email" name="email" placeholder="Email" required />
-    <input type="text" name="phone" placeholder="Số điện thoại" />
-    <textarea name="message" rows="5" placeholder="Nội dung cần tư vấn"></textarea>
-    
-    <button type="submit">Gửi liên hệ</button>
-  </form>
+  <form id="contact-form">
+  <input type="text" name="name" placeholder="Họ và tên" required />
+  <input type="email" name="email" placeholder="Email" required />
+  <input type="text" name="phone" placeholder="Số điện thoại" />
+  <textarea name="message" rows="5" placeholder="Nội dung cần tư vấn"></textarea>
+
+  <button type="submit">Gửi liên hệ</button>
+
+  <p id="form-status" style="margin-top:12px;"></p>
+</form>
+  
 </section>
 
 <footer>
   © 2026 Mini ERP | Giải pháp cho doanh nghiệp vừa & nhỏ
 </footer>
 
+  <script>
+  (function () {
+    const form = document.getElementById("contact-form");
+    const statusEl = document.getElementById("form-status");
+
+    const FORMSPREE_ENDPOINT = "https://formspree.io/f/xlggrzzg";
+
+    function setStatus(msg, ok) {
+      statusEl.textContent = msg;
+      statusEl.style.color = ok ? "green" : "crimson";
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      setStatus("Đang gửi...", true);
+
+      const formData = new FormData(form);
+
+      try {
+        const res = await fetch(FORMSPREE_ENDPOINT, {
+          method: "POST",
+          body: formData,
+          headers: {
+            "Accept": "application/json"
+          }
+        });
+
+        if (res.ok) {
+          form.reset();
+          setStatus("✅ Gửi thành công! Mình sẽ liên hệ sớm.", true);
+        } else {
+          // Formspree trả JSON lỗi
+          let data = null;
+          try { data = await res.json(); } catch {}
+          const msg = data?.errors?.[0]?.message || "❌ Gửi thất bại. Vui lòng thử lại.";
+          setStatus(msg, false);
+        }
+      } catch (err) {
+        setStatus("❌ Lỗi mạng. Vui lòng thử lại.", false);
+      }
+    });
+  })();
+</script>
 </body>
 </html>
